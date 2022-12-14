@@ -543,8 +543,8 @@ echo -e "$BCyan------------------------------- Installing CAS ------------------
 sleep 1
 cd $CAS_INSTALL_DIR
 git clone "$APEREO_GIT_URL" --branch $APEREO_CAS_VER
-sed -i '129i \    implementation "org.apereo.cas:cas-server-support-pac4j-webflow"' cas-overlay-template/build.gradle
-sed -i '130i \    implementation "org.apereo.cas:cas-server-support-json-service-registry"' cas-overlay-template/build.gradle
+sed -i '124i \    implementation "org.apereo.cas:cas-server-support-pac4j-webflow"' cas-overlay-template/build.gradle
+sed -i '125i \    implementation "org.apereo.cas:cas-server-support-json-service-registry"' cas-overlay-template/build.gradle
 mkdir -p $CAS_HOME/services
 
 ######  GOOGLE PAC4J  MENU  #################################################
