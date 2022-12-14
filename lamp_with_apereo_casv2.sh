@@ -31,7 +31,7 @@ BWhite='\033[1;37m'       # White
 MYSQL_PASSWD_DEF="Host@12345"
 #Tomcat Install
 TOMCAT_INSTALL_DIR="/usr/share"
-TOMCAT_VER="9.0.69"
+TOMCAT_VER="9.0.70"
 TOMCAT_USER="tomcat" 
 TOMCAT_URL="https://dlcdn.apache.org/tomcat/tomcat-9/v$TOMCAT_VER/bin/apache-tomcat-$TOMCAT_VER.tar.gz"
 
