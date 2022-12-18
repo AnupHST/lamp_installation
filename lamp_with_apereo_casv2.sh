@@ -340,8 +340,8 @@ while true; do
                         
                         sudo rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
                         yum --enablerepo=remi-php74 install php -y
-                        yum --enablerepo=remi-php74 install php-xml php-soap php-xmlrpc php-mbstring php-json php-gd php-mcrypt  php-cli php-curl php-common php-intl php-mysqli php-pdo_mysql php-openssl php-zip php-imap php-ldap php-pdo_mysql -y
-                        cp /etc/php.ini  /etc/php.ini_original
+                        yum --enablerepo=remi-php74 install php-opcache php-xml php-soap php-xmlrpc php-mbstring php-json php-gd php-mcrypt  php-cli php-curl php-common php-intl php-mysqli php-pdo_mysql php-openssl php-zip php-imap php-ldap php-pdo_mysql -y
+			cp /etc/php.ini  /etc/php.ini_original
                         sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 200M/' /etc/php.ini
                         sed -i 's/memory_limit = 128M/memory_limit = 200M/' /etc/php.ini
                         
@@ -353,7 +353,7 @@ while true; do
                       
                         sudo rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
                         yum --enablerepo=remi-php80 install php -y
-                        yum --enablerepo=remi-php80 install php-xml php-soap php-xmlrpc php-mbstring php-json php-gd php-mcrypt  php-cli php-curl php-common php-intl php-mysqli php-pdo_mysql php-openssl php-zip php-imap php-ldap php-pdo_mysql -y
+                        yum --enablerepo=remi-php80 install php-opcache php-xml php-soap php-xmlrpc php-mbstring php-json php-gd php-mcrypt  php-cli php-curl php-common php-intl php-mysqli php-pdo_mysql php-openssl php-zip php-imap php-ldap php-pdo_mysql -y
                         cp /etc/php.ini  /etc/php.ini_original
                         sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 200M/' /etc/php.ini
                         sed -i 's/memory_limit = 128M/memory_limit = 200M/' /etc/php.ini
