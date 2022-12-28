@@ -263,10 +263,7 @@ CAS_SERVICE_ID="${CAS_SERVICE_ID:-$CAS_SERVICE_ID_DEF}"
                             done
         
         break;;
-        [nN][oO]|[nN])  break;;
-        *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" 
-    esac
-done
+        
 ################
 while true; do
  echo -en "$BGreen  Do you want to configure CAS with GOOGLE Credentials (yes/no): $BYellow"
@@ -297,6 +294,10 @@ while true; do
 	esac
 done
 
+[nN][oO]|[nN])  break;;
+        *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" 
+    esac
+done
 #########################
 
 while true; 
