@@ -146,11 +146,38 @@ while true; do
     esac
 done
 
+CONFIGURE_CAS_WITH_GOOGLE (){
+ while true; do
+ echo -en "$BGreen  Do you want to configure CAS with GOOGLE Credentials (yes/no): $BYellow"
+ read CONFIGURE_GOOGLE
+	case $CONFIGURE_GOOGLE in
+		[yY][eE][sS]|[yY]) 
+
+         echo -en "$BGreen  Enter the PAC4J Google ID $BWhite[default $CAS_AUTHN_PAC4J_GOOGLE_ID_DEF]: $BYellow"
+         read CAS_AUTHN_PAC4J_GOOGLE_ID
+         CAS_AUTHN_PAC4J_GOOGLE_ID="${CAS_AUTHN_PAC4J_GOOGLE_ID:-$CAS_AUTHN_PAC4J_GOOGLE_ID_DEF}"
+
+         echo -en "$BGreen  Enter the PAC4J Google Secret $BWhite[default $CAS_AUTHN_PAC4J_GOOGLE_SECRET_DEF] : $BYellow"
+         read CAS_AUTHN_PAC4J_GOOGLE_SECRET
+         CAS_AUTHN_PAC4J_GOOGLE_SECRET="${CAS_AUTHN_PAC4J_GOOGLE_SECRET:-$CAS_AUTHN_PAC4J_GOOGLE_SECRET_DEF}"
+
+         echo -en "$BGreen  Enter the PAC4J Google Scope $BWhite[default $CAS_AUTHN_PAC4J_GOOGLE_SCOPE_DEF] : $BYellow"
+         read CAS_AUTHN_PAC4J_GOOGLE_SCOPE
+         CAS_AUTHN_PAC4J_GOOGLE_SCOPE="${CAS_AUTHN_PAC4J_GOOGLE_SCOPE:-$CAS_AUTHN_PAC4J_GOOGLE_SCOPE_DEF}"
+			
+         break;;
+        [nN][oO]|[nN]) break;;
+		*|"" ) echo -e "$BYellow Please enter yes or no. $BYellow";;
+	esac
+done
+
+}
+
 while true; do
         
-        echo -en "$BGreen Do you want to Install APEREO CAS .....Yes/No $BWhite[Deafult Is Yes]: $BYellow"
-        read cas
-        cas="${cas:-$cas_def}"
+    echo -en "$BGreen Do you want to Install APEREO CAS .....Yes/No $BWhite[Deafult Is Yes]: $BYellow"
+    read cas
+    cas="${cas:-$cas_def}"
     case $cas in
         [yY][eE][sS]|[yY]) 
 
@@ -248,51 +275,20 @@ read CAS_SERVICE_ID
 CAS_SERVICE_ID="${CAS_SERVICE_ID:-$CAS_SERVICE_ID_DEF}"
 
 
-                            while true; do
+     while true; do
         
-                                    echo -en "$BGreen Do you want to Install SSl with CAS .....Yes/No : $BYellow"
-                                    read ssl
-                                    case $ssl in
-                                    [yY][eE][sS]|[yY]) 
-                                    echo -en "$BGreen Enter a valid e-mail for let's encrypt certificate: $BYellow"
-	                                read EMAIL_NAME
-                                    break;;
-                                    [nN][oO]|[nN])  break;;
-                                    *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" 
-                                esac
-                            done
-        
-        break;;
-        
-################
-while true; do
- echo -en "$BGreen  Do you want to configure CAS with GOOGLE Credentials (yes/no): $BYellow"
- read CONFIGURE_GOOGLE
-	case $CONFIGURE_GOOGLE in
-		[yY][eE][sS]|[yY]) 
-
-         echo -en "$BGreen  Enter the PAC4J Google ID $BWhite[default $CAS_AUTHN_PAC4J_GOOGLE_ID_DEF]: $BYellow"
-         read CAS_AUTHN_PAC4J_GOOGLE_ID
-         CAS_AUTHN_PAC4J_GOOGLE_ID="${CAS_AUTHN_PAC4J_GOOGLE_ID:-$CAS_AUTHN_PAC4J_GOOGLE_ID_DEF}"
-
-         echo -en "$BGreen  Enter the PAC4J Google Secret $BWhite[default $CAS_AUTHN_PAC4J_GOOGLE_SECRET_DEF] : $BYellow"
-         read CAS_AUTHN_PAC4J_GOOGLE_SECRET
-         CAS_AUTHN_PAC4J_GOOGLE_SECRET="${CAS_AUTHN_PAC4J_GOOGLE_SECRET:-$CAS_AUTHN_PAC4J_GOOGLE_SECRET_DEF}"
-
-         echo -en "$BGreen  Enter the PAC4J Google Scope $BWhite[default $CAS_AUTHN_PAC4J_GOOGLE_SCOPE_DEF] : $BYellow"
-         read CAS_AUTHN_PAC4J_GOOGLE_SCOPE
-         CAS_AUTHN_PAC4J_GOOGLE_SCOPE="${CAS_AUTHN_PAC4J_GOOGLE_SCOPE:-$CAS_AUTHN_PAC4J_GOOGLE_SCOPE_DEF}"
-			
-         break;;
-            
-            
-            
-        [nN][oO]|[nN])  
-            break;;
-			
-            *|"" ) echo -e "$BYellow Please enter yes or no. $BYellow";;
-	esac
-done
+             echo -en "$BGreen Do you want to Install SSl with CAS .....Yes/No : $BYellow"
+             read ssl
+                 case $ssl in
+                     [yY][eE][sS]|[yY]) 
+                        echo -en "$BGreen Enter a valid e-mail for let's encrypt certificate: $BYellow"
+	                     read EMAIL_NAME
+                         break;;
+                     [nN][oO]|[nN])  break;;
+                     *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" 
+                 esac
+     done
+CONFIGURE_CAS_WITH_GOOGLE ; break;;
 
 [nN][oO]|[nN])  break;;
         *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" 
