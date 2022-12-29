@@ -207,7 +207,7 @@ while true; do
                         echo  -e "$Color_Off" ;;
                     [nN][oO]|[nN])  break;;
                     
-                    *) echo  "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" ;;
+                    *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" ;;
                 esac
           done  
 
