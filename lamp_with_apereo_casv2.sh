@@ -188,10 +188,10 @@ while true; do
         echo -en "$BGreen"
         read ping1
         ping1="${ping1:-$ping_def}"
-            while true; do
+            
                 case $ping1 in
                     [yY][eE][sS]|[yY]) 
-                    
+                    while true; do
                         ping=$(ping -c 3 ${DOMAIN_NAME})
                         if [[ ${ping} ]]; then
                             
@@ -203,13 +203,13 @@ while true; do
                             echo -en "$BGreen Please re-enter domain name: $BYellow" 
                             read DOMAIN_NAME  
                         fi
-                    
+                    done
                         echo  -e "$Color_Off" ;;
                     [nN][oO]|[nN])  break;;
                     
                     *) echo  "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" ;;
                 esac
-            done
+            
 
 
 CAS_SERVER_NAME_DEF="https://$DOMAIN_NAME"
