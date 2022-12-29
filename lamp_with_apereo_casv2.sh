@@ -183,7 +183,7 @@ while true; do
 
         echo -en "$BGreen Enter a valid hostname or public domain such as $BWhite mydomain.com : $BYellow"
         read DOMAIN_NAME
-
+ while true; do
         echo -en "$BGreen Do you want to ping $DOMAIN_NAME $BWhite[Deafult Is Yes]: $BYellow"
         echo -en "$BGreen"
         read ping1
@@ -209,7 +209,7 @@ while true; do
                     
                     *) echo  "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" ;;
                 esac
-            
+          done  
 
 
 CAS_SERVER_NAME_DEF="https://$DOMAIN_NAME"
