@@ -29,12 +29,14 @@ BWhite='\033[1;37m'       # White
 
 ######################## Deafult Details ##################################
 MYSQL_PASSWD_DEF="Host@12345"
+PHP_RPM="http://rpms.famillecollet.com/enterprise/remi-release-7.rpm"
+PHP_MODULE="php-opcache php-xml php-soap php-xmlrpc php-mbstring php-json php-gd php-mcrypt  php-cli php-curl php-common php-intl php-mysqli php-pdo_mysql php-openssl php-zip php-imap php-ldap php-pdo_mysql"
 #Tomcat Install
 TOMCAT_INSTALL_DIR="/usr/share"
 TOMCAT_VER="9.0.70"
 TOMCAT_USER="tomcat" 
 TOMCAT_URL="https://dlcdn.apache.org/tomcat/tomcat-9/v$TOMCAT_VER/bin/apache-tomcat-$TOMCAT_VER.tar.gz"
-
+LOG_FILE="/var/log"
 # Apereo Defaults
 APEREO_CAS_VER="6.6"                        # Used to do a git checkout
 APEREOCAS_USER="apereo"                     # The user name and group of the cas
@@ -66,38 +68,19 @@ mysql_def="1"
 cas_def="yes"
 ping_def="yes"
 firewall_def="yes"
-################################### Check if running as root  
- if [ "$(id -u)" != "0" ]; then  
-   echo -e "$BRed This script must be run as root $Color_Off" 1>&2  
-   exit 1  
- fi  
 
+# Check if running as root  
+if ! [ "$(id -u)" = 0 ]; then echo -e "$BRed This script must be run as sudo or root, try again..."; exit 1; fi
 
-############################# web server ##################################
+# web server 
+WEB_SERVER_CHOOSE (){
 while true; do
-        echo -e "$BCyan------------------------ Please Choose Webserver ----------------------------$Color_Off"
-        echo -e "$BCyan------------------------ We Recommend Apache --------------------------------$Color_Off"
-        echo -en "$BGreen       1. Apache       2. Ngnix     3.Cancel $BWhite[Deafult Is Apache]:$BYellow"
-        read web
-        web="${web:-$web_def}"
-   case $web in
-        1) break;;
-        2) break;;
-        3) echo -e "$Color_Off" 
-        break;;
-        *) echo -e "$BYellow Wrong Input ! Please Answer 1 ,2 or 3 $Color_Off" ;;
-    esac
-
-done
-
-################################## PHP ##################################
-
-while true; do
-        echo -e "$BCyan------------------------ Please Choose PHP Version --------------------------$Color_Off"
-        echo -en "$BGreen       1. PHP 7.4      2. PHP 8.0       3. Cancel $BWhite[Deafult Is PHP 8.0]: $BYellow"
-        read php
-        php="${php:-$php_def}"
-      case $php in
+    echo -e "$BCyan------------------------ Please Choose Webserver ----------------------------$Color_Off"
+    echo -e "$BCyan------------------------ We Recommend Apache --------------------------------$Color_Off"
+    echo -en "$BGreen       1. Apache       2. Ngnix     3.Cancel $BWhite[Deafult Is Apache]:$BYellow"
+    read web
+    web="${web:-$web_def}"
+    case $web in
         1) break;;
         2) break;;
         3) echo -e "$Color_Off" 
@@ -105,8 +88,28 @@ while true; do
         *) echo -e "$BYellow Wrong Input ! Please Answer 1 ,2 or 3 $Color_Off" ;;
     esac
 done
-#################################### MYSQL ##################################
-while true; do
+}
+
+# PHP #
+PHP_CHOOSE (){
+    while true; do
+     echo -e "$BCyan------------------------ Please Choose PHP Version --------------------------$Color_Off"
+     echo -en "$BGreen       1. PHP 7.4      2. PHP 8.0       3. Cancel $BWhite[Deafult Is PHP 8.0]: $BYellow"
+     read php
+     php="${php:-$php_def}"
+     case $php in
+        1) break;;
+        2) break;;
+        3) echo -e "$Color_Off" 
+        break;;
+        *) echo -e "$BYellow Wrong Input ! Please Answer 1 ,2 or 3 $Color_Off" ;;
+     esac
+    done
+}
+
+# MYSQL 
+MYSQL_CHOOSE (){
+    while true; do
         echo -e "$BCyan------------------------ Please Choose MySQL Version ------------------------$Color_Off"
         echo -e "$BCyan------------------------ We Recommend MariaDB 10.5 --------------------------$Color_Off"
         echo -en "$BGreen       1. MariaDB 10.5     2. MySQL 8.0   3.Cancel $BWhite[Deafult Is MariaDB 10.5]: $BYellow"
@@ -122,19 +125,20 @@ while true; do
         2) echo -en "$BGreen Please Set MySQL Root Password $BWhite(Default Pass: $MYSQL_PASSWD_DEF):$BYellow"
         read MYSQL_ROOT_PASSWORD
         MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD:-$MYSQL_PASSWD_DEF}"
-        
         break;;
 
         3) echo -e "$Color_Off" 
         break;;
         *) echo -e "$BYellow Wrong Input ! Please Answer 1 ,2 or 3 $Color_Off" ;;
-    esac
-
-        
+    esac     
 done
+}
 
-################################### Firewall ##################################
-while true; do
+
+
+# Firewall 
+FIREWALL_CHOOSE (){
+    while true; do
         echo -e "$BCyan------------------------ Please Choose Firewall  ----------------------------$Color_Off"
         echo -en "$BGreen Do you want to allow Http/Https In Firewall .....Yes/No $BWhite[Deafult Is Yes]: $BYellow"
         read firewall
@@ -145,6 +149,7 @@ while true; do
         *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" 
     esac
 done
+}
 
 CONFIGURE_CAS_WITH_GOOGLE (){
  while true; do
@@ -170,59 +175,79 @@ CONFIGURE_CAS_WITH_GOOGLE (){
 		*|"" ) echo -e "$BYellow Please enter yes or no. $BYellow";;
 	esac
 done
-
 }
 
-while true; do
-        
-    echo -en "$BGreen Do you want to Install APEREO CAS .....Yes/No $BWhite[Deafult Is Yes]: $BYellow"
-    read cas
-    cas="${cas:-$cas_def}"
-    case $cas in
-        [yY][eE][sS]|[yY]) 
-
-        echo -en "$BGreen Enter a valid hostname or public domain such as $BWhite mydomain.com : $BYellow"
-        read DOMAIN_NAME
+PING_OPTION (){
  while true; do
-        echo -en "$BGreen Do you want to ping $DOMAIN_NAME $BWhite[Deafult Is Yes]: $BYellow"
-        echo -en "$BGreen"
-        read ping1
-        ping1="${ping1:-$ping_def}"
+ echo -en "$BGreen Do you want to ping $DOMAIN_NAME $BWhite[Deafult Is Yes]: $BYellow"
+ echo -en "$BGreen"
+ read ping1
+ ping1="${ping1:-$ping_def}"
             
-                case $ping1 in
-                    [yY][eE][sS]|[yY]) 
+    case $ping1 in
+    [yY][eE][sS]|[yY]) 
+    ping=$(ping -c 3 ${DOMAIN_NAME})
+    if [[ ${ping} ]]; then
+        echo -e "$BGreen $DOMAIN_NAME is reachable successfully"
+        break 1
+        else
+        echo -e " $BYellow $DOMAIN_NAME is unreachable "
+        echo -en "$BGreen Please re-enter domain name: $BYellow" 
+        read DOMAIN_NAME  
+        fi
                     
-                        ping=$(ping -c 3 ${DOMAIN_NAME})
-                        if [[ ${ping} ]]; then
-                            
-                            #echo -e "$BGreen $DOMAIN_NAME ${ping}"
-                            echo -e "$BGreen $DOMAIN_NAME is reachable successfully"
-                            break 1
-                        else
-                            echo -e " $BYellow $DOMAIN_NAME is unreachable "
-                            echo -en "$BGreen Please re-enter domain name: $BYellow" 
-                            read DOMAIN_NAME  
-                        fi
-                    
-                        echo  -e "$Color_Off" ;;
-                    [nN][oO]|[nN])  break;;
-                    
-                    *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" ;;
-                esac
-          done  
+        echo  -e "$Color_Off" ;;
+        [nN][oO]|[nN])  break;;
+        *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" ;;
+    esac
+ done  
+}
+
+LETSENCRYPT_MSG (){
+    echo -en "$BYellow \n Please Check A Record For    :$BYellow $DOMAIN_NAME $Color_Off"
+    echo -en "$BYellow \n Please Check WAN Firewall Ports (HTTP/HTTPS) $Color_Off"
+    echo -e "$Color_Off"
+    
+}
+
+SSL_CHOOSE (){
+ while true; do
+    echo -en "$BGreen Do you want to Install SSl with CAS .....Yes/No : $BYellow"
+    read ssl
+    case $ssl in
+    [yY][eE][sS]|[yY]) LETSENCRYPT_MSG;
+    while true;do
+        echo -en "$BGreen Enter a valid e-mail for let's encrypt certificate: $BYellow"
+        read EMAIL_NAME
+
+        if [[ ! -z "$EMAIL_NAME" ]]; then  break 
+        else  echo -e "$BYellow Email not be empty $Color_Off" ; fi
+    done
+    break;;
+    [nN][oO]|[nN])  break;;
+    *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" 
+    esac
+ done
+}
 
 
-CAS_SERVER_NAME_DEF="https://$DOMAIN_NAME"
-CAS_SERVER_PREFIX_DEF="https://$DOMAIN_NAME/cas"
-CAS_AUTHORIZATION_ENDPOINT_DEF="https://$DOMAIN_NAME/cas"
-CAS_REDIRECT_URI_DEF="https://$DOMAIN_NAME"
-CAS_SERVER_NAME_DEF="https://$DOMAIN_NAME"
-CAS_SERVER_PREFIX_DEF="https://$DOMAIN_NAME/cas"
-CAS_AUTHORIZATION_ENDPOINT_DEF="https://$DOMAIN_NAME/cas"
-CAS_REDIRECT_URI_DEF="https://$DOMAIN_NAME/suitecrm"
+APEREO_MENU (){
+ echo -en "$BGreen Enter a valid hostname or public domain such as $BWhite mydomain.com : $BYellow"
+ read DOMAIN_NAME
+ PING_OPTION
 
 
-############################ Reading Data #############################
+    CAS_SERVER_NAME_DEF="https://$DOMAIN_NAME"
+    CAS_SERVER_PREFIX_DEF="https://$DOMAIN_NAME/cas"
+    CAS_AUTHORIZATION_ENDPOINT_DEF="https://$DOMAIN_NAME/cas"
+    CAS_REDIRECT_URI_DEF="https://$DOMAIN_NAME"
+    CAS_SERVER_NAME_DEF="https://$DOMAIN_NAME"
+    CAS_SERVER_PREFIX_DEF="https://$DOMAIN_NAME/cas"
+    CAS_AUTHORIZATION_ENDPOINT_DEF="https://$DOMAIN_NAME/cas"
+    CAS_REDIRECT_URI_DEF="https://$DOMAIN_NAME/suitecrm"
+
+
+# Reading Data ##
 echo -en "$BGreen  Enter the Apereo CAS server name $BWhite[default $CAS_SERVER_NAME_DEF]: $BYellow"
 read CAS_SERVER_NAME
 CAS_SERVER_NAME="${CAS_SERVER_NAME:-$CAS_SERVER_NAME_DEF}"
@@ -273,111 +298,76 @@ CAS_SERVICE_NAME="${CAS_SERVICE_NAME:-$CAS_SERVICE_NAME_DEF}"
 echo -en "$BGreen  Enter the Apereo CAS service ID $BWhite[default $CAS_SERVICE_ID_DEF]: $BYellow"
 read CAS_SERVICE_ID
 CAS_SERVICE_ID="${CAS_SERVICE_ID:-$CAS_SERVICE_ID_DEF}"
+}
 
-
-     while true; do
-        
-             echo -en "$BGreen Do you want to Install SSl with CAS .....Yes/No : $BYellow"
-             read ssl
-                 case $ssl in
-                     [yY][eE][sS]|[yY]) 
-                        echo -en "$BGreen Enter a valid e-mail for let's encrypt certificate: $BYellow"
-	                     read EMAIL_NAME
-                         break;;
-                     [nN][oO]|[nN])  break;;
-                     *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" 
-                 esac
-     done
-CONFIGURE_CAS_WITH_GOOGLE ; break;;
-
-[nN][oO]|[nN])  break;;
-        *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" 
+APEREO_CHOOSE (){
+while true; do    
+ echo -en "$BGreen Do you want to Install APEREO CAS .....Yes/No $BWhite[Deafult Is Yes]: $BYellow"
+ read cas
+ cas="${cas:-$cas_def}"
+    case $cas in
+     [yY][eE][sS]|[yY]) APEREO_MENU ; SSL_CHOOSE ;CONFIGURE_CAS_WITH_GOOGLE ; break;;
+     [nN][oO]|[nN])  break;;
+     *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" 
     esac
 done
-#########################
+}
 
-while true; 
-do
-echo -en "$BCyan Would you like to proceed to setting up the Lamp     Yes/No: $BYellow"
-read lamp
+YUM_INSTALLATION (){
+    echo -e "$BCyan------------------------ Downloading and Installing HRN_LAMP (Official installer) ----------------------------$Color_Off"
+    sleep 1
 
-case $lamp in
-        y|Y|yes|Yes|YES)
-################################## Instaling Package ##################################
-echo -e "$BCyan------------------------ Downloading and Installing HRN_LAMP (Official installer) ----------------------------$Color_Off"
-sleep 1
+    yum update -y > $LOG_FILE/update.log
+    yum install wget vim zip unzip git -y > $LOG_FILE/Lamp-install.log
+    yum install epel-release -y > $LOG_FILE/Lamp-install.log
+    yum install certbot python2-certbot-apache mod_ssl -y > $LOG_FILE/Lamp-install.log
+    yum install -y cairo-devel  gcc gnu-free-mono-fonts policycoreutils-python pulseaudio-libs-devel setroubleshoot uuid-devel nano mlocate net-tools wget telnet mlocate policycoreutils-python autoconf automake git libtool jq  > $LOG_FILE/install.log
 
-yum update -y > update.log
-yum install wget vim zip unzip git -y > install.log
-yum install epel-release -y > install.log
-yum install certbot python2-certbot-apache mod_ssl -y > install.log
-yum install -y cairo-devel  gcc gnu-free-mono-fonts policycoreutils-python pulseaudio-libs-devel setroubleshoot uuid-devel nano mlocate net-tools wget telnet mlocate policycoreutils-python autoconf automake git libtool jq  > install.log
+    # Setup automatic cert renewal
+    systemctl enable certbot-renew.service
+    systemctl enable certbot-renew.timer
+    systemctl start certbot-renew.service
+    systemctl start certbot-renew.timer
+    systemctl list-timers --all | grep certbot
+}
 
-# Setup automatic cert renewal
+JAVA_INSTALLATION (){
+    echo -e "$BCyan------------------------------- Installing JAVA --------------------------$Color_Off"
+    sleep 1
+    sudo yum install java-11-openjdk-devel -y > $LOG_FILE/java-install.log
+}
 
-systemctl enable certbot-renew.service
-systemctl enable certbot-renew.timer
-systemctl start certbot-renew.service
-systemctl start certbot-renew.timer
-systemctl list-timers --all | grep certbot
+PHP_UPDATES (){
+ cp /etc/php.ini  /etc/php.ini_original
+ sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 200M/' /etc/php.ini
+ sed -i 's/memory_limit = 128M/memory_limit = 200M/' /etc/php.ini 
+ 
+ sed -i '9i opcache.memory_consumption=128 \
+ opcache.interned_strings_buffer=8 \
+ opcache.max_accelerated_files=4000 \
+ opcache.revalidate_freq=60 \
+ opcache.fast_shutdown=1' /etc/php.d/10-opcache.ini  
+}
 
-
-echo -e "$BCyan------------------------------- Installing JAVA --------------------------$Color_Off"
-sleep 1
-sudo yum install java-11-openjdk-devel -y > java-install.log
-
-
-################################## PHP Instalation ##################################
-echo -e "$BCyan------------------------ PHP Installation Under Process-------------------------------------------------------$Color_Off"
-
+PHP_INSTALLATION (){
 while true; do
+    case $php in
+        1) echo -e "$BCyan---------------------------Installing PHP 7.4 Under Process...... $Color_Off"
+           sudo rpm -Uvh $PHP_RPM ; yum --enablerepo=remi-php74 install -y php $PHP_MODULE ; PHP_UPDATES      
+           echo -e "$BCyan---------------------PHP Installation Completed--------------$Color_Off" ; break;;
 
-        case $php in
-                1) echo -e "$BCyan---------------------------Installing PHP 7.4 Under Process...... $Color_Off"
-                        
-                        sudo rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
-                        yum --enablerepo=remi-php74 install php -y
-                        yum --enablerepo=remi-php74 install php-opcache php-xml php-soap php-xmlrpc php-mbstring php-json php-gd php-mcrypt  php-cli php-curl php-common php-intl php-mysqli php-pdo_mysql php-openssl php-zip php-imap php-ldap php-pdo_mysql -y
-			cp /etc/php.ini  /etc/php.ini_original
-                        sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 200M/' /etc/php.ini
-                        sed -i 's/memory_limit = 128M/memory_limit = 200M/' /etc/php.ini
-                        
-                        echo -e "$BCyan---------------------PHP Installation Completed--------------$Color_Off"
-                        
-                        break;;
-
-                2) echo -e "$BCyan---------------------------Installing PHP 8.0 Under Process...... $Color_Off"
-                      
-                        sudo rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
-                        yum --enablerepo=remi-php80 install php -y
-                        yum --enablerepo=remi-php80 install php-opcache php-xml php-soap php-xmlrpc php-mbstring php-json php-gd php-mcrypt  php-cli php-curl php-common php-intl php-mysqli php-pdo_mysql php-openssl php-zip php-imap php-ldap php-pdo_mysql -y
-                        cp /etc/php.ini  /etc/php.ini_original
-                        sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 200M/' /etc/php.ini
-                        sed -i 's/memory_limit = 128M/memory_limit = 200M/' /etc/php.ini
-                        echo -e "$BCyan---------------------PHP Installation Completed--------------$Color_Off"
-                        break;;
+        2) echo -e "$BCyan---------------------------Installing PHP 8.0 Under Process...... $Color_Off"              
+           sudo rpm -Uvh $PHP_RPM ; yum --enablerepo=remi-php80 install -y php $PHP_MODULE ; PHP_UPDATES
+           echo -e "$BCyan---------------------PHP Installation Completed--------------$Color_Off" ; break;;
                 
-                3) echo -e "$Color_Off"
-                break;;
-
-                *) echo -e "$BYellow Wrong Input ! Please Answer 1 ,2 or 3 $Color_Off" ;;        
-        esac
+        3) echo -e "$Color_Off" ; break;;
+        *) echo -e "$BYellow Wrong Input ! Please Answer 1 ,2 or 3 $Color_Off" ;;        
+    esac
 done
+}
 
-sed -i '9i opcache.memory_consumption=128 \
-opcache.interned_strings_buffer=8 \
-opcache.max_accelerated_files=4000 \
-opcache.revalidate_freq=60 \
-opcache.fast_shutdown=1' /etc/php.d/10-opcache.ini 
-
-##################################################### Installing MYSQL #########################################################
-echo -e "$BCyan------------------------ MySQL Installation Under Process-----------------------------------------------------$Color_Off"
-sleep 1
-while true; do
-
-case $mysql in
-        1)               echo -e "$BCyan------------MariaDB Server Setup Under Process--------------$Color_Off"
-            
+MARIADB (){
+    echo -e "$BCyan------------MariaDB Server Setup Under Process--------------$Color_Off"        
 echo "[mariadb]
 name = MariaDB
 baseurl = http://yum.mariadb.org/10.5/centos7-amd64
@@ -385,33 +375,31 @@ gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
 " >  /etc/yum.repos.d/MariaDB.repo
 
-            yum install -y mariadb-server
-            sudo systemctl start mariadb
-            sudo systemctl enable mariadb
-        
-            /usr/bin/mysqladmin -u root password $MYSQL_ROOT_PASSWORD
-            
-            echo -e "$BCyan------------MariaDB Server Setup Completed--------------$Color_Off"
-            break;;
-            
-        2) echo -e "$BCyan------------MySQL 8 Server Setup Under Process--------------$Color_Off"
+ yum install -y mariadb-server
+ sudo systemctl start mariadb
+ sudo systemctl enable mariadb
+ /usr/bin/mysqladmin -u root password $MYSQL_ROOT_PASSWORD
 
-            rpm -Uvh https://repo.mysql.com/mysql80-community-release-el7-3.noarch.rpm
-            sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/mysql-community.repo
-            rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2022
-            yum --enablerepo=mysql80-community install mysql-community-server -y
-            systemctl start mysqld.service
+echo -e "$BCyan------------MariaDB Server Setup Completed--------------$Color_Off"
 
-            root_temp_pass=$(sudo grep 'A temporary password' /var/log/mysqld.log |tail -1 |awk '{split($0,a,": "); print a[2]}')
-            
-            
+}
+
+MYSQL_8 (){
+    echo -e "$BCyan------------MySQL 8 Server Setup Under Process--------------$Color_Off"
+    rpm -Uvh https://repo.mysql.com/mysql80-community-release-el7-3.noarch.rpm
+    sed -i 's/enabled=1/enabled=0/' /etc/yum.repos.d/mysql-community.repo
+    rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2022
+    yum --enablerepo=mysql80-community install mysql-community-server -y
+    systemctl start mysqld.service
+    root_temp_pass=$(sudo grep 'A temporary password' /var/log/mysqld.log |tail -1 |awk '{split($0,a,": "); print a[2]}')
+                 
 echo "[client]
 user=root
 password=$MYSQL_ROOT_PASSWORD
 "> ~/.my.cnf 
 chmod 600 ~/.my.cnf
 
-            # mysql_secure_installation.sql
+# mysql_secure_installation.sql
 echo "# Make sure that NOBODY can access the server without a password
 ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';
 # Kill the anonymous users
@@ -425,28 +413,28 @@ DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
 FLUSH PRIVILEGES;
 " >  mysql_secure_installation.sql
 
-     
-            sudo mysql -uroot -p"$root_temp_pass" --connect-expired-password <mysql_secure_installation.sql
+    sudo mysql -uroot -p"$root_temp_pass" --connect-expired-password <mysql_secure_installation.sql
+    systemctl enable mysqld.service
+    mysql -u root  -e "UNINSTALL COMPONENT 'file://component_validate_password'";
+    echo -e "$BCyan Database Password Updated Successfully...... $Color_Off"
+    echo -e "$BCyan------------MySQL Server Installation Done--------------$Color_Off"
 
-            systemctl enable mysqld.service
-            mysql -u root  -e "UNINSTALL COMPONENT 'file://component_validate_password'";
+}
 
-            echo -e "$BCyan Database Password Updated Successfully...... $Color_Off"
-            
-            echo -e "$BCyan------------MySQL Server Installation Done--------------$Color_Off"
-            break;;
-            
-        3) echo -e "$Color_Off"
-                break;;
 
+MYSQL_INSTALLATION (){
+ while true; do
+    case $mysql in
+        1) MARIADB ; break;;
+        2) MYSQL_8 ; break;;
+        3) echo -e "$Color_Off" ; break;;
         *) echo -e "$BYellow Wrong Input ! Please Answer 1 ,2 or 3 $Color_Off" ;;
-esac
-done
+    esac
+ done
+}
 
-#########
-######################################### Webserver ####################################################################
-
-while true; do
+WEB_SERVER_INSTALLATION (){
+ while true; do
    case $web in
         1) echo -e "$BCyan------------------------ Apache Server Setup Under Process-----------------------------------------------------$Color_Off"
         
@@ -461,48 +449,32 @@ while true; do
         systemctl start nginx
         sudo systemctl enable nginx
         break;;
-        3) echo -e "$Color_Off"
-                break;;
-
+        3) echo -e "$Color_Off" ; break;;
         *) echo -e "$BYellow Wrong Input ! Please Answer 1 ,2 or 3 $Color_Off" ;;
     esac
-done
+ done
+}
 
-
-
-######################################### Firewall ########################################
-
-while true; do
-#  echo -en "$BGreen Do you want allow Http/Https In Firewall .....Yes/No : $BGreen"
-#  read firewall
-        case $firewall in
-            [yY][eE][sS]|[yY])
-                        firewall-cmd --state
-                        firewall-cmd --zone=public --permanent --add-service=http
-                        firewall-cmd --zone=public --permanent --add-service=https
-                        firewall-cmd --zone=public --permanent --add-port=8080/tcp
-                        firewall-cmd --zone=public --permanent --add-port=8443/tcp
-                        firewall-cmd --reload
-                        break;;
+FIREWALL_INSTALLATION (){
+ while true; do
+    case $firewall in
+        [yY][eE][sS]|[yY])
+            firewall-cmd --state
+            firewall-cmd --zone=public --permanent --add-service=http
+            firewall-cmd --zone=public --permanent --add-service=https
+            firewall-cmd --zone=public --permanent --add-port=8080/tcp
+            firewall-cmd --zone=public --permanent --add-port=8443/tcp
+            firewall-cmd --reload
+            break;;
             
-            [nN][oO]|[nN]) echo -e "$Color_Off"
-             break;;
-    
-            *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" 
-            
+        [nN][oO]|[nN]) echo -e "$Color_Off"; break;;
+        *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off"    
     esac
 done
+}
 
-##################### CAS ###################################
-while true; 
-do
-# echo -en "$BGreen \n Do You Want Install APEREO CAS  ..... Y/N: $BGreen"
-# read cas
+TOMCAT_INSTALLATION (){
 
-case $cas in
-        y|Y|yes|Yes|YES) 
-
-# Tomcat
 echo -e "$BCyan------------------------------- Installing Tomcat ------------------------$Color_Off"
 sleep 1
 sudo useradd -m -U -d $TOMCAT_INSTALL_DIR/tomcat -s /bin/false $TOMCAT_USER
@@ -539,24 +511,13 @@ ExecStop=$TOMCAT_INSTALL_DIR/tomcat/bin/shutdown.sh
 [Install]
 WantedBy=multi-user.target
 " > /etc/systemd/system/tomcat.service
+}
 
-
-###### Install CAS   
-echo -e "$BCyan------------------------------- Installing CAS ------------------------------------$Color_Off"
-sleep 1
-cd $CAS_INSTALL_DIR
-git clone "$APEREO_GIT_URL" --branch $APEREO_CAS_VER
-sed -i '124i \    implementation "org.apereo.cas:cas-server-support-pac4j-webflow"' cas-overlay-template/build.gradle
-sed -i '125i \    implementation "org.apereo.cas:cas-server-support-json-service-registry"' cas-overlay-template/build.gradle
-mkdir -p $CAS_HOME/services
-
-######  GOOGLE PAC4J  MENU  #################################################
-while true; do
-
+GOOGLE_PAC4J_MENU (){
+ while true; do
 	case $CONFIGURE_GOOGLE in
 		[yY][eE][sS]|[yY]) 
-
-         
+  
 echo "cas.server.name:$CAS_SERVER_NAME
 cas.server.prefix:$CAS_SERVER_PREFIX
 
@@ -571,10 +532,8 @@ cas.authn.pac4j.google.scope=$CAS_AUTHN_PAC4J_GOOGLE_SCOPE
 cas.authn.pac4j.google.principalAttributed=email
 cas.serviceRegistry.json.location=$CAS_SERVICEREGISTRY_JSON_LOCATION
 " > cas-overlay-template/etc/cas/config/cas.properties
-                    break;;
-            
-            
-            
+        break;;
+                
         [nN][oO]|[nN])  
             
 echo "cas.server.name:$CAS_SERVER_NAME
@@ -593,10 +552,17 @@ cas.serviceRegistry.json.location=$CAS_SERVICEREGISTRY_JSON_LOCATION
             *|"" ) echo -e "$BYellow Please enter yes or no. $BYellow";;
 	esac
 done
+}
 
+CAS_INSTALLATION (){
 
-
-########################
+    echo -e "$BCyan------------------------------- Installing CAS ------------------------------------$Color_Off"
+    sleep 1
+    cd $CAS_INSTALL_DIR
+    git clone "$APEREO_GIT_URL" --branch $APEREO_CAS_VER
+    sed -i '124i \    implementation "org.apereo.cas:cas-server-support-pac4j-webflow"' cas-overlay-template/build.gradle
+    sed -i '125i \    implementation "org.apereo.cas:cas-server-support-json-service-registry"' cas-overlay-template/build.gradle
+    mkdir -p $CAS_HOME/services
 
     json=$(jq -n --arg CAS_REDIRECT_URI "^(https)://.*" --arg CAS_SERVICE_NAME "$CAS_SERVICE_NAME" --arg CAS_SERVICE_ID "$CAS_SERVICE_ID" \
                '{"@class" : "org.apereo.cas.services.RegexRegisteredService",
@@ -608,99 +574,106 @@ done
                 }')
           echo "$json" > "$CAS_SERVICE_NAME-$CAS_SERVICE_ID".json
 
-cp "$CAS_SERVICE_NAME-$CAS_SERVICE_ID".json $CAS_HOME/services/
-cp cas-overlay-template/etc/cas/config/cas.properties $CAS_PROPERTIES_PATH
-cp cas-overlay-template/etc/cas/config/log4j2.xml $CAS_LOG4J2_PATH
+    cp "$CAS_SERVICE_NAME-$CAS_SERVICE_ID".json $CAS_HOME/services/
+    cp cas-overlay-template/etc/cas/config/log4j2.xml $CAS_LOG4J2_PATH
 
-echo -e "$BCyan------------------------------- Downloading and configuring CAS $APEREO_CAS_VER ------------------- $Color_Off"
-sleep 1   
-cd $CAS_INSTALL_DIR/cas-overlay-template
-./gradlew clean build
+    echo -e "$BCyan------------------------------- Downloading and configuring CAS $APEREO_CAS_VER ------------------- $Color_Off"
+    sleep 1   
+    cd $CAS_INSTALL_DIR/cas-overlay-template
+    ./gradlew clean build
+    cd .. 
+    GOOGLE_PAC4J_MENU  ### Funcation
+    cp $CAS_INSTALL_DIR/cas-overlay-template/etc/cas/config/cas.properties $CAS_PROPERTIES_PATH
+    cp $CAS_INSTALL_DIR/cas-overlay-template/build/libs/cas.war /etc/cas/ 
+    mkdir -p /opt/etc
+    ln -sf -T /etc/cas /opt/etc/cas
+    ln -sf -T /etc/cas/cas.war $TOMCAT_INSTALL_DIR/tomcat/webapps/cas.war
+    ln -sf -T $TOMCAT_INSTALL_DIR/tomcat /opt/tomcat
+    ln -sf -T /etc/cas "$CAS_INSTALL_PATH"
 
-cd .. 
-cp $CAS_INSTALL_DIR/cas-overlay-template/build/libs/cas.war /etc/cas/ 
-mkdir -p /opt/etc
-ln -sf -T /etc/cas /opt/etc/cas
-ln -sf -T /etc/cas/cas.war $TOMCAT_INSTALL_DIR/tomcat/webapps/cas.war
-ln -sf -T $TOMCAT_INSTALL_DIR/tomcat /opt/tomcat
-ln -sf -T /etc/cas "$CAS_INSTALL_PATH"
-
-chown -R $TOMCAT_USER:$TOMCAT_USER /etc/cas    
-chown -R $TOMCAT_USER:$TOMCAT_USER $TOMCAT_INSTALL_DIR/tomcat/webapps/
+    chown -R $TOMCAT_USER:$TOMCAT_USER /etc/cas    
+    chown -R $TOMCAT_USER:$TOMCAT_USER $TOMCAT_INSTALL_DIR/tomcat/webapps/
+}
 
 
-#.5.################# Install Let’s Encrypt with Apache ###########################
- 
+
+
+
+letsencrypt_asking (){
 while true; do
- DIR=/etc/letsencrypt/live/$DOMAIN_NAME 
+ echo -en "$BGreen Do you want to Install SSl with CAS .....Yes/No : $BYellow"
+ read ssl
+    case $ssl in
+     [yY][eE][sS]|[yY]) break ;;
+     [nN][oO]|[nN]) echo -e "$Color_Off"
+     break;;
+     *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" 
+    esac 
+done
 
- 
+}
+
+LETSENCRYPT_INSTALLATION (){
+ while true; do
+    DIR=/etc/letsencrypt/live/$DOMAIN_NAME 
+
     case $ssl in
             [yY][eE][sS]|[yY])
-echo -e "$BCyan------------------------ Installing Let's Encrypt for $DOMAIN_NAME ----------------------$Color_Off"
-sleep 2                          
-
-
-                service httpd stop
-                certbot certonly --standalone -n --agree-tos -m "$EMAIL_NAME" -d $DOMAIN_NAME
-           
+            echo -e "$BCyan------------------------ Installing Let's Encrypt for $DOMAIN_NAME ----------------------$Color_Off"
+            sleep 2                          
+            service httpd stop
+            certbot certonly --standalone -n --agree-tos -m "$EMAIL_NAME" -d $DOMAIN_NAME
                 if [ -d $DIR ]; then
-                 cd /etc/letsencrypt/live/$DOMAIN_NAME 
-                 cp {cert,chain,privkey}.pem /opt/tomcat/conf/ 
-                    sed -i '86i         <Connector port="8443" protocol="org.apache.coyote.http11.Http11NioProtocol" \
-                            maxThreads="150" SSLEnabled="true"> \
-                        <SSLHostConfig> \
-                            <Certificate certificateFile="conf/cert.pem" \
-                                certificateKeyFile="conf/privkey.pem" \
-                                certificateChainFile="conf/chain.pem" /> \
-                        </SSLHostConfig> \
-                    </Connector>'  /opt/tomcat/conf/server.xml
+                    cd /etc/letsencrypt/live/$DOMAIN_NAME 
+                    cp {cert,chain,privkey}.pem /opt/tomcat/conf/ 
+                        sed -i '86i         <Connector port="8443" protocol="org.apache.coyote.http11.Http11NioProtocol" \
+                                maxThreads="150" SSLEnabled="true"> \
+                            <SSLHostConfig> \
+                                <Certificate certificateFile="conf/cert.pem" \
+                                    certificateKeyFile="conf/privkey.pem" \
+                                    certificateChainFile="conf/chain.pem" /> \
+                            </SSLHostConfig> \
+                        </Connector>'  /opt/tomcat/conf/server.xml
                     service httpd start
-
-                 echo -e "$BGreen SSL Installation Successfully Completed $Color_Off"
-                 break 1
-                              
+                    echo -e "$BGreen SSL Installation Successfully Completed $Color_Off"
+                    break 1
+                                    
                 else
-                 echo -e "$BRed  SSL installation has been failed $Color_Off"
-                              
+                    echo -e "$BRed  SSL installation has been failed $Color_Off"
+                    LETSENCRYPT_MSG
+                    sleep 2
+                    read -p "$(echo -e $BYellow Check Firewall Settings and DNS Configuration. Press any key to Resume ...$Color_Off)" 
+                    letsencrypt_asking                  
                 fi
-                 echo -e "$Color_Off" ;;
-            
-            [nN][oO]|[nN]) echo -e "$Color_Off"
-             break;;
-    
-            *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" 
+                    echo -e "$Color_Off" ;;
 
-      esac 
-done
-
-########################  END #####################################################
-
-
-chown -R $TOMCAT_USER:$TOMCAT_USER /opt/tomcat/
-sudo systemctl daemon-reload
-sudo systemctl enable tomcat
-sudo systemctl start tomcat
-
-
-
-
-break;;
-
-
-
-        n|N|no|No|NO) echo -e "$Color_Off"
-        break;;
- 
+        [nN][oO]|[nN]) echo -e "$Color_Off" ;  break;;
         *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" 
- 
-esac
-done
-##################### CAS END ###############################
+    esac 
+ done
+}
+
+TOCAT_SERVICE_RESTART (){
+    chown -R $TOMCAT_USER:$TOMCAT_USER /opt/tomcat/
+    sudo systemctl daemon-reload
+    sudo systemctl enable tomcat
+    sudo systemctl start tomcat
+}
+
+APEREO_INSTALLATION (){
+ while true; do
+  case $cas in
+        y|Y|yes|Yes|YES) JAVA_INSTALLATION; TOMCAT_INSTALLATION; CAS_INSTALLATION; LETSENCRYPT_INSTALLATION; TOCAT_SERVICE_RESTART;
+        break;;
+        n|N|no|No|NO) echo -e "$Color_Off" 
+        break;;
+        *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" 
+  esac
+ done
+}
 
 
-################################### Summery ##################################
-
+SERVER_INSTALLATION_SUMMARY (){
 
 echo -e "$BCyan------------------------------- Server Installation Summary ---------------------------------$Color_Off"
 case $web in
@@ -758,15 +731,32 @@ case $cas in
          echo -e "$BCyan------------------------------- CAS Installation Was Canceled  ---------------------------------$Color_Off" 
          ;;         
 esac
- 
- break;;
+}
 
-
+LAMP_INSTALLATION (){
+ while true; 
+ do
+ echo -en "$BCyan Would you like to proceed to setting up the Lamp     Yes/No: $BYellow"
+ read lamp
+    case $lamp in
+        y|Y|yes|Yes|YES) YUM_INSTALLATION ; PHP_INSTALLATION ; MYSQL_INSTALLATION ; WEB_SERVER_INSTALLATION ; FIREWALL_INSTALLATION ; APEREO_INSTALLATION; SERVER_INSTALLATION_SUMMARY;  
+                        
+        break;;
 
         n|N|no|No|NO) echo -e "$BRed The lamp Installation Has Been Canceled $Color_Off"
         exit;;
- 
         *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off" 
  
-esac
-done
+    esac
+ done
+}
+
+#Funcation Calling
+WEB_SERVER_CHOOSE
+PHP_CHOOSE
+MYSQL_CHOOSE
+FIREWALL_CHOOSE
+APEREO_CHOOSE
+LAMP_INSTALLATION
+
+
