@@ -462,8 +462,8 @@ FIREWALL_INSTALLATION (){
             firewall-cmd --state
             firewall-cmd --zone=public --permanent --add-service=http
             firewall-cmd --zone=public --permanent --add-service=https
-            firewall-cmd --zone=public --permanent --add-port=8080/tcp
-            firewall-cmd --zone=public --permanent --add-port=8443/tcp
+            #firewall-cmd --zone=public --permanent --add-port=8080/tcp
+            #firewall-cmd --zone=public --permanent --add-port=8443/tcp
             firewall-cmd --reload
             break;;
             
@@ -471,6 +471,20 @@ FIREWALL_INSTALLATION (){
         *) echo -e "$BYellow Wrong Input ! Please Answer Yes or No $Color_Off"    
     esac
 done
+}
+
+VHOST (){
+    echo "<VirtualHost *:80>
+    ServerName $DOMAIN_NAME
+
+    SSLProxyEngine on
+    ProxyRequests On
+    ProxyPreserveHost On
+    ProxyPass / https://localhost:8443/
+    ProxyPassReverse / http://localhost:8443/
+
+</VirtualHost>
+   " >/etc/httpd/conf.d/$DOMAIN_NAME.conf 
 }
 
 TOMCAT_INSTALLATION (){
@@ -621,8 +635,9 @@ LETSENCRYPT_INSTALLATION (){
             [yY][eE][sS]|[yY])
             echo -e "$BCyan------------------------ Installing Let's Encrypt for $DOMAIN_NAME ----------------------$Color_Off"
             sleep 2                          
-            service httpd stop
-            certbot certonly --standalone -n --agree-tos -m "$EMAIL_NAME" -d $DOMAIN_NAME
+            certbot --apache -n --agree-tos -m "$EMAIL_NAME" -d $DOMAIN_NAME
+            #service httpd stop
+            #certbot certonly --standalone -n --agree-tos -m "$EMAIL_NAME" -d $DOMAIN_NAME
                 if [ -d $DIR ]; then
                     cd /etc/letsencrypt/live/$DOMAIN_NAME 
                     cp {cert,chain,privkey}.pem /opt/tomcat/conf/ 
@@ -634,7 +649,7 @@ LETSENCRYPT_INSTALLATION (){
                                     certificateChainFile="conf/chain.pem" /> \
                             </SSLHostConfig> \
                         </Connector>'  /opt/tomcat/conf/server.xml
-                    service httpd start
+                    #service httpd start
                     echo -e "$BGreen SSL Installation Successfully Completed $Color_Off"
                     break 1
                                     
@@ -663,7 +678,7 @@ TOCAT_SERVICE_RESTART (){
 APEREO_INSTALLATION (){
  while true; do
   case $cas in
-        y|Y|yes|Yes|YES) JAVA_INSTALLATION; TOMCAT_INSTALLATION; CAS_INSTALLATION; LETSENCRYPT_INSTALLATION; TOCAT_SERVICE_RESTART;
+        y|Y|yes|Yes|YES) JAVA_INSTALLATION; TOMCAT_INSTALLATION; VHOST; CAS_INSTALLATION; LETSENCRYPT_INSTALLATION; TOCAT_SERVICE_RESTART;
         break;;
         n|N|no|No|NO) echo -e "$Color_Off" 
         break;;
