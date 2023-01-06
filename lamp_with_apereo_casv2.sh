@@ -590,14 +590,15 @@ CAS_INSTALLATION (){
 
     cp "$CAS_SERVICE_NAME-$CAS_SERVICE_ID".json $CAS_HOME/services/
     cp cas-overlay-template/etc/cas/config/log4j2.xml $CAS_LOG4J2_PATH
+    GOOGLE_PAC4J_MENU  ### Funcation
+    cp $CAS_INSTALL_DIR/cas-overlay-template/etc/cas/config/cas.properties $CAS_PROPERTIES_PATH
 
     echo -e "$BCyan------------------------------- Downloading and configuring CAS $APEREO_CAS_VER ------------------- $Color_Off"
     sleep 1   
     cd $CAS_INSTALL_DIR/cas-overlay-template
     ./gradlew clean build
     cd .. 
-    GOOGLE_PAC4J_MENU  ### Funcation
-    cp $CAS_INSTALL_DIR/cas-overlay-template/etc/cas/config/cas.properties $CAS_PROPERTIES_PATH
+    
     cp $CAS_INSTALL_DIR/cas-overlay-template/build/libs/cas.war /etc/cas/ 
     mkdir -p /opt/etc
     ln -sf -T /etc/cas /opt/etc/cas
